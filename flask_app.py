@@ -41,6 +41,7 @@ if __name__ == '__main__':
     parser.add_argument('--image_dir')
     parser.add_argument('--label_names')
     parser.add_argument('--file_ext', type=str, default='png')
+    parser.add_argument('--prefix', default='')
     args = parser.parse_args()
 
     file_ext = '.{}'.format(args.file_ext)
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     }
 
 
-    @app.route('/image-labelling/')
+    @app.route(args.prefix + '/')
     def index():
         label_classes_json = [{'name': cls.name, 'human_name': cls.human_name, 'colour': cls.colour}   for cls in label_classes]
         return render_template('labeller_page.jinja2',
@@ -121,10 +122,11 @@ if __name__ == '__main__':
                                label_classes=json.dumps(label_classes_json),
                                image_descriptors=json.dumps(image_descriptors),
                                initial_image_index=0,
-                               config=json.dumps(config))
+                               config=json.dumps(config),
+                               prefix=args.prefix)
 
 
-    @app.route('/image-labelling/labelling/get_labels/<image_id>')
+    @app.route(args.prefix + '/labelling/get_labels/<image_id>')
     def get_labels(image_id):
         image = images_table[image_id]
 
@@ -143,7 +145,7 @@ if __name__ == '__main__':
         return r
 
 
-    @app.route('/image-labelling/labelling/set_labels', methods=['POST'])
+    @app.route(args.prefix + '/labelling/set_labels', methods=['POST'])
     def set_labels():
         label_header = json.loads(request.form['labels'])
         image_id = label_header['image_id']
@@ -156,7 +158,7 @@ if __name__ == '__main__':
         return make_response('')
 
 
-    @app.route('/image-labelling/image/<image_id>')
+    @app.route(args.prefix + '/image/<image_id>')
     def get_image(image_id):
         image = images_table[image_id]
         data, mimetype, width, height = image.data_and_mime_type_and_size()
@@ -166,7 +168,7 @@ if __name__ == '__main__':
 
 
 
-    @app.route('/image-labelling/ext_static/<path:filename>')
+    @app.route(args.prefix + '/ext_static/<path:filename>')
     def base_static(filename):
         return send_from_directory(app.root_path + '/ext_static/', filename)
 
