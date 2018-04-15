@@ -508,7 +508,7 @@ class ImageLabels (object):
         :return: an `ImageLabels` instance containing the labels extracted from the label mask image
         """
         contours = []
-        for i in xrange(1, labels.max()+1):
+        for i in range(1, labels.max()+1):
             lmask = labels == i
 
             if lmask.sum() > 0:
