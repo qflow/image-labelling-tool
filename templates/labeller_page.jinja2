@@ -7,9 +7,9 @@
         <link rel="stylesheet" href="{{  prefix }}/ext_static/jquery/jquery-ui.min.css">
         <script src="{{ prefix }}/ext_static/jquery/jquery-ui.min.js"></script>
 
-        <script src="/static/d3.min.js"></script>
-        <script src="/static/json2.js"></script>
-        <script src="/static/polyk.js"></script>
+        <script src="{{ prefix }}/static/d3.min.js"></script>
+        <script src="{{ prefix }}/static/json2.js"></script>
+        <script src="{{ prefix }}/static/polyk.js"></script>
         {% for js_url in tool_js_urls %}
             <script src="{{ js_url }}"></script>
         {% endfor %}
