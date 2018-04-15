@@ -6,6 +6,7 @@ RUN pip install --upgrade pip && \
 RUN git clone https://github.com/qflow/image-labelling-tool.git && cd image-labelling-tool && \
     pip install -e .
 WORKDIR /image-labelling-tool
+EXPOSE 5000
 ADD start.sh /start.sh
 RUN chmod +x /start.sh
 ENTRYPOINT ["/start.sh"]
