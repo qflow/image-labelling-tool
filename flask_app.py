@@ -118,7 +118,7 @@ if __name__ == '__main__':
     def index():
         label_classes_json = [{'name': cls.name, 'human_name': cls.human_name, 'colour': cls.colour}   for cls in label_classes]
         return render_template('labeller_page.jinja2',
-                               tool_js_urls=labelling_tool.js_file_urls('/static/labelling_tool/'),
+                               tool_js_urls=labelling_tool.js_file_urls(args.prefix + '/static/labelling_tool/'),
                                label_classes=json.dumps(label_classes_json),
                                image_descriptors=json.dumps(image_descriptors),
                                initial_image_index=0,
