@@ -166,7 +166,7 @@ class ImageLabels (object):
             polygon = [[v['x'], v['y']] for v in vertices]
             polygon = xform_fn(np.array(polygon))
             transformed_verts = [{'x': polygon[i, 0], 'y': polygon[i, 1]}
-                                 for i in xrange(len(polygon))]
+                                 for i in range(len(polygon))]
             label['vertices'] = transformed_verts
         elif label_type == 'composite':
             # Nothing to do
