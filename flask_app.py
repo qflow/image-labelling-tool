@@ -113,7 +113,7 @@ if __name__ == '__main__':
     }
 
 
-    @app.route('/')
+    @app.route('/image-labelling/')
     def index():
         label_classes_json = [{'name': cls.name, 'human_name': cls.human_name, 'colour': cls.colour}   for cls in label_classes]
         return render_template('labeller_page.jinja2',
@@ -124,7 +124,7 @@ if __name__ == '__main__':
                                config=json.dumps(config))
 
 
-    @app.route('/labelling/get_labels/<image_id>')
+    @app.route('/image-labelling/labelling/get_labels/<image_id>')
     def get_labels(image_id):
         image = images_table[image_id]
 
@@ -143,7 +143,7 @@ if __name__ == '__main__':
         return r
 
 
-    @app.route('/labelling/set_labels', methods=['POST'])
+    @app.route('/image-labelling/labelling/set_labels', methods=['POST'])
     def set_labels():
         label_header = json.loads(request.form['labels'])
         image_id = label_header['image_id']
@@ -156,7 +156,7 @@ if __name__ == '__main__':
         return make_response('')
 
 
-    @app.route('/image/<image_id>')
+    @app.route('/image-labelling/image/<image_id>')
     def get_image(image_id):
         image = images_table[image_id]
         data, mimetype, width, height = image.data_and_mime_type_and_size()
@@ -166,7 +166,7 @@ if __name__ == '__main__':
 
 
 
-    @app.route('/ext_static/<path:filename>')
+    @app.route('/image-labelling/ext_static/<path:filename>')
     def base_static(filename):
         return send_from_directory(app.root_path + '/ext_static/', filename)
 
