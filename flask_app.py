@@ -102,7 +102,7 @@ if __name__ == '__main__':
             width=width, height=height
         ))
 
-    app = Flask(__name__, static_folder='image_labelling_tool/static')
+    app = Flask(__name__, static_folder='image_labelling_tool/static', static_url_path=app.prefix+'/static')
     config = {
         'tools': {
             'imageSelector': True,
