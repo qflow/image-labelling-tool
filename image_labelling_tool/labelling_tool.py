@@ -487,7 +487,7 @@ class ImageLabels (object):
         if not isinstance(label_classes, list):
             label_classes = [label_classes] * len(list_of_contours)
         for contour, lcls in zip(list_of_contours, label_classes):
-            vertices = [{'x': contour[i][1], 'y': contour[i][0]}   for i in xrange(contour.shape[0])]
+            vertices = [{'x': contour[i][1], 'y': contour[i][0]}   for i in range(contour.shape[0])]
             label = {
                 'label_type': 'polygon',
                 'label_class': lcls,
