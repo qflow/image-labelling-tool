@@ -98,7 +98,7 @@ if __name__ == '__main__':
     for image_id, img in zip(image_ids, labelled_images):
         data, mimetype, width, height = img.data_and_mime_type_and_size()
         image_descriptors.append(labelling_tool.image_descriptor(
-            image_id=image_id, url='/image/{}'.format(image_id),
+            image_id=image_id, url=args.prefix+'/image/{}'.format(image_id),
             width=width, height=height
         ))
 
