@@ -60,7 +60,7 @@ var labelling_tool;
    Labelling tool view; links to the server side data structures
     */
     var LabellingTool = (function () {
-        function LabellingTool(element, label_classes, tool_width, tool_height, images, initial_image_index, requestLabelsCallback, sendLabelHeaderFn, getNextUnlockedImageIDCallback, config) {
+        function LabellingTool(element, label_classes, tool_width, tool_height, images, initial_image_index, requestLabelsCallback, refreshCallback, sendLabelHeaderFn, getNextUnlockedImageIDCallback, config) {
             var _this = this;
             var self = this;
             if (LabellingTool._global_key_handler === undefined ||
@@ -148,6 +148,7 @@ var labelling_tool;
             this._stopwatchStart = null;
             this._stopwatchCurrent = null;
             this._stopwatchHandle = null;
+            this._refreshCallback = refreshCallback;
             // Data request callback; labelling tool will call this when it needs a new image to show
             this._requestLabelsCallback = requestLabelsCallback;
             // Send data callback; labelling tool will call this when it wants to commit data to the backend in response
@@ -198,6 +199,9 @@ var labelling_tool;
                     var image_id = self._get_current_image_id();
                     self._getNextUnlockedImageIDCallback(image_id);
                 };
+                var _refresh = function () {
+                    self._refreshCallback();
+                };
                 this._image_index_input = $('<input type="text" style="width: 30px; vertical-align: middle;" name="image_index"/>').appendTo(toolbar);
                 this._image_index_input.on('change', function () {
                     var index_str = self._image_index_input.val();
@@ -224,6 +228,13 @@ var labelling_tool;
                 }).click(function (event) {
                     _increment_image_index(1);
                     event.preventDefault();
+                });
+                var refresh_button = $('<button>Refresh</button>').appendTo(toolbar);
+                refresh_button.button({
+                    text: false,
+                    icons: { primary: "ui-icon-refresh" }
+                }).click(function (event) {
+                    _refresh();
                 });
                 if (this._getNextUnlockedImageIDCallback !== null && this._getNextUnlockedImageIDCallback !== undefined) {
                     var next_unlocked_image_button = $('<button>Next unlocked image</button>').appendTo(toolbar);

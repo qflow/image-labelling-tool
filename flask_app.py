@@ -33,6 +33,65 @@ from flask import Flask, render_template, request, make_response, send_from_dire
 
 from image_labelling_tool import labelling_tool
 
+def refresh():
+        # `LabelClass` parameters are: symbolic name, human readable name for UI, and RGB colour as list
+        with open(args.label_names, 'r') as f:
+            label_names = yaml.load(f)
+
+        cmap = plt.get_cmap('nipy_spectral')
+        colors = [(np.array(cmap(i)[:3]) * 255).astype(np.int32).tolist()
+                for i in range(1, len(label_names) + 1)]
+        global label_classes
+        label_classes = [labelling_tool.LabelClass(name, name, color)
+                        for color, name in zip(colors, label_names)]
+
+        img_dir = args.image_dir
+        if args.slic:
+            import glob
+            from skimage.segmentation import slic
+
+            for path in glob.glob(os.path.join(img_dir, '*{}'.format(file_ext))):
+                name = os.path.splitext(path)[0]
+                out_name = name + '__labels.json'
+                if os.path.exists(out_name):
+                    print('Label already exits at {}'.format(out_name))
+                    # raise ValueError
+                    continue
+
+                print('Segmenting {0}'.format(path))
+                img = plt.imread(path)
+                # slic_labels = slic(img, 1000, compactness=20.0)
+                # slic_labels = slic(img, 1000, slic_zero=True) + 1
+                slic_labels = slic(img, 1000, slic_zero=True) + 1
+
+                print('Converting SLIC labels to vector labels...')
+                labels = labelling_tool.ImageLabels.from_label_image(slic_labels)
+
+                with open(out_name, 'w') as f:
+                    json.dump(labels.labels_json, f)
+
+        readonly = args.readonly
+        # Load in .JPG images from the 'images' directory.
+        labelled_images = labelling_tool.PersistentLabelledImage.for_directory(
+            img_dir, image_filename_pattern='*{}'.format(file_ext),
+            readonly=readonly)
+        print('Loaded {0} images'.format(len(labelled_images)))
+
+        # Generate image IDs list
+        image_ids = [str(i) for i in range(len(labelled_images))]
+        # Generate images table mapping image ID to image so we can get an image by ID
+        global images_table
+        images_table = {image_id: img for image_id, img in zip(image_ids, labelled_images)}
+        # Generate image descriptors list to hand over to the labelling tool
+        # Each descriptor provides the image ID, the URL and the size
+        global image_descriptors
+        image_descriptors = []
+        for image_id, img in zip(image_ids, labelled_images):
+            data, mimetype, width, height = img.data_and_mime_type_and_size()
+            image_descriptors.append(labelling_tool.image_descriptor(
+                image_id=image_id, url=args.prefix+'/image/{}'.format(image_id),
+                width=width, height=height
+            ))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Image labelling tool - Flask app')
@@ -45,63 +104,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     file_ext = '.{}'.format(args.file_ext)
-
-    # `LabelClass` parameters are: symbolic name, human readable name for UI, and RGB colour as list
-    with open(args.label_names, 'r') as f:
-        label_names = yaml.load(f)
-
-    cmap = plt.get_cmap('nipy_spectral')
-    colors = [(np.array(cmap(i)[:3]) * 255).astype(np.int32).tolist()
-              for i in range(1, len(label_names) + 1)]
-    label_classes = [labelling_tool.LabelClass(name, name, color)
-                     for color, name in zip(colors, label_names)]
-
-    img_dir = args.image_dir
-    if args.slic:
-        import glob
-        from skimage.segmentation import slic
-
-        for path in glob.glob(os.path.join(img_dir, '*{}'.format(file_ext))):
-            name = os.path.splitext(path)[0]
-            out_name = name + '__labels.json'
-            if os.path.exists(out_name):
-                print('Label already exits at {}'.format(out_name))
-                # raise ValueError
-                continue
-
-            print('Segmenting {0}'.format(path))
-            img = plt.imread(path)
-            # slic_labels = slic(img, 1000, compactness=20.0)
-            # slic_labels = slic(img, 1000, slic_zero=True) + 1
-            slic_labels = slic(img, 1000, slic_zero=True) + 1
-
-            print('Converting SLIC labels to vector labels...')
-            labels = labelling_tool.ImageLabels.from_label_image(slic_labels)
-
-            with open(out_name, 'w') as f:
-                json.dump(labels.labels_json, f)
-
-    readonly = args.readonly
-    # Load in .JPG images from the 'images' directory.
-    labelled_images = labelling_tool.PersistentLabelledImage.for_directory(
-        img_dir, image_filename_pattern='*{}'.format(file_ext),
-        readonly=readonly)
-    print('Loaded {0} images'.format(len(labelled_images)))
-
-    # Generate image IDs list
-    image_ids = [str(i) for i in range(len(labelled_images))]
-    # Generate images table mapping image ID to image so we can get an image by ID
-    images_table = {image_id: img for image_id, img in zip(image_ids, labelled_images)}
-    # Generate image descriptors list to hand over to the labelling tool
-    # Each descriptor provides the image ID, the URL and the size
-    image_descriptors = []
-    for image_id, img in zip(image_ids, labelled_images):
-        data, mimetype, width, height = img.data_and_mime_type_and_size()
-        image_descriptors.append(labelling_tool.image_descriptor(
-            image_id=image_id, url=args.prefix+'/image/{}'.format(image_id),
-            width=width, height=height
-        ))
-
+    refresh()
     app = Flask(__name__, static_folder='image_labelling_tool/static', static_url_path=args.prefix+'/static')
     config = {
         'tools': {
@@ -125,6 +128,10 @@ if __name__ == '__main__':
                                config=json.dumps(config),
                                prefix=args.prefix)
 
+    @app.route(args.prefix + '/refresh')
+    def refresh_web():
+        refresh()
+        return make_response('')
 
     @app.route(args.prefix + '/labelling/get_labels/<image_id>')
     def get_labels(image_id):
@@ -174,4 +181,4 @@ if __name__ == '__main__':
 
 
     # app.run(debug=True)
-    app.run(debug=False, host='0.0.0.0')
+    app.run(debug=False, host='0.0.0.0', port=80)

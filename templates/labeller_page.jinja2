@@ -126,6 +126,12 @@
                 dataType: 'json'
             });
         };
+        var refresh = function() {
+            $.ajax({
+                type: 'GET',
+                url: '{{ prefix }}/refresh'
+            });
+        };
 
         // set labels callback function
         var set_labels = function(label_header) {
@@ -156,6 +162,7 @@
                 {{ image_descriptors }},
                 {{ initial_image_index }},
                 get_labels,
+                refresh,
                 set_labels,
                 null,
                 {{ config }});
