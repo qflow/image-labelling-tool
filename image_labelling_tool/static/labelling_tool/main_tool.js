@@ -235,6 +235,8 @@ var labelling_tool;
                     icons: { primary: "ui-icon-refresh" }
                 }).click(function (event) {
                     _refresh();
+                    location.reload(true);
+                    event.preventDefault();
                 });
                 if (this._getNextUnlockedImageIDCallback !== null && this._getNextUnlockedImageIDCallback !== undefined) {
                     var next_unlocked_image_button = $('<button>Next unlocked image</button>').appendTo(toolbar);
