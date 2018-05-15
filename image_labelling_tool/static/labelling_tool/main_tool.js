@@ -60,7 +60,8 @@ var labelling_tool;
    Labelling tool view; links to the server side data structures
     */
     var LabellingTool = (function () {
-        function LabellingTool(element, label_classes, tool_width, tool_height, images, initial_image_index, requestLabelsCallback, refreshCallback, sendLabelHeaderFn, getNextUnlockedImageIDCallback, config) {
+        function LabellingTool(element, label_classes, tool_width, tool_height, images, initial_image_index, requestLabelsCallback, 
+            refreshCallback, set_slic_callback, sendLabelHeaderFn, getNextUnlockedImageIDCallback, config) {
             var _this = this;
             var self = this;
             if (LabellingTool._global_key_handler === undefined ||
@@ -127,7 +128,7 @@ var labelling_tool;
                 this.label_classes.push(new labelling_tool.LabelClass(label_classes[i]));
             }
             // Hide labels
-            this.label_visibility = labelling_tool.LabelVisibility.FULL;
+            this.label_visibility = labelling_tool.LabelVisibility.FAINT;
             // Button state
             this._button_down = false;
             // Labelling tool dimensions
@@ -149,6 +150,7 @@ var labelling_tool;
             this._stopwatchCurrent = null;
             this._stopwatchHandle = null;
             this._refreshCallback = refreshCallback;
+            this._set_slic_callback = set_slic_callback;
             // Data request callback; labelling tool will call this when it needs a new image to show
             this._requestLabelsCallback = requestLabelsCallback;
             // Send data callback; labelling tool will call this when it wants to commit data to the backend in response
@@ -202,6 +204,13 @@ var labelling_tool;
                 var _refresh = function () {
                     self._refreshCallback();
                 };
+                var _set_slic = function () {
+                    var image_id = self._get_current_image_id();
+                    segments_count = self._segments_count.value;
+                    compactness = self._compactness.value;
+                    self._set_slic_callback(image_id, segments_count, compactness);
+                    self.loadImage(self._images[image_id]);
+                }
                 this._image_index_input = $('<input type="text" style="width: 30px; vertical-align: middle;" name="image_index"/>').appendTo(toolbar);
                 this._image_index_input.on('change', function () {
                     var index_str = self._image_index_input.val();
@@ -254,6 +263,16 @@ var labelling_tool;
                 'Please choose another image (click the unlock button above to find the next unlocked image).</p></div>');
             this._lockNotification.appendTo(toolbar);
             $('<br/>').appendTo(toolbar);
+            this._segments_count = $('<ui-slider name="segments_count" label="Segments count" min="1" max="1500" step=1/>').appendTo(toolbar)[0];
+            this._segments_count.onchange = function () {
+                _set_slic();
+            };
+            $('<br/>').appendTo(toolbar);
+            this._compactness = $('<ui-slider name="compactness" label="Compactness" min="0.1" max="10" step=0.1/>').appendTo(toolbar)[0];
+            this._compactness.onchange = function () {
+                _set_slic();
+            };
+            $('<br/>').appendTo(toolbar);
             this._complete_checkbox = $('<input type="checkbox">Finished</input>').appendTo(toolbar);
             this._complete_checkbox.change(function (event, ui) {
                 self.root_view.set_complete(event.target.checked);
@@ -285,8 +304,8 @@ var labelling_tool;
             }
             $('<br/><span>Label visibility:</span><br/>').appendTo(toolbar);
             this.label_vis_hidden_radio = $('<input type="radio" name="labelvis" value="hidden">hidden</input>').appendTo(toolbar);
-            this.label_vis_faint_radio = $('<input type="radio" name="labelvis" value="faint">faint</input>').appendTo(toolbar);
-            this.label_vis_full_radio = $('<input type="radio" name="labelvis" value="full" checked>full</input>').appendTo(toolbar);
+            this.label_vis_faint_radio = $('<input type="radio" name="labelvis" value="faint" checked>faint</input>').appendTo(toolbar);
+            this.label_vis_full_radio = $('<input type="radio" name="labelvis" value="full">full</input>').appendTo(toolbar);
             this.label_vis_hidden_radio.change(function (event, ui) {
                 if (event.target.checked) {
                     self.set_label_visibility(labelling_tool.LabelVisibility.HIDDEN);
@@ -721,6 +740,13 @@ var labelling_tool;
                     console.log("Labelling tool: Image URL was unavailable to loadImage and has not been " +
                         "provided by loadLabels");
                 }
+            }
+            if(label_header.meta)
+            {
+                var compactness = label_header.meta.compactness;
+                this._compactness.display_value = compactness;
+                var segments_count = label_header.meta.segments_count;
+                this._segments_count.display_value = segments_count;
             }
             // Update the image SVG element
             this.root_view.set_model(label_header);

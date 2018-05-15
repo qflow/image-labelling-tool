@@ -132,6 +132,15 @@
                 url: '{{ prefix }}/refresh'
             });
         };
+        var set_slic = function(image_id, segments_count) {
+            $.ajax({
+                type: 'GET',
+                url: '{{ prefix }}/set_slic?image_id=' + image_id + '&segments_count=' + segments_count + '&compactness=' + compactness,
+                success: function() {
+                }
+            });
+        };
+        
 
         // set labels callback function
         var set_labels = function(label_header) {
@@ -163,6 +172,7 @@
                 {{ initial_image_index }},
                 get_labels,
                 refresh,
+                set_slic,
                 set_labels,
                 null,
                 {{ config }});

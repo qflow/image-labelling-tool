@@ -54,6 +54,7 @@ LABELLING_TOOL_JS_FILES = [
     'group_label.js',
     'main_tool.js',
     'root_label_view.js',
+    'slider.js'
 ]
 
 def js_file_urls(url_prefix):
@@ -684,6 +685,8 @@ class PersistentLabelledImage (AbsractLabelledImage):
         self.__labels = None
         self.__complete = None
         self.__readonly = readonly
+        self.__meta = 4
+        self.__test = 5
 
 
 
@@ -709,6 +712,14 @@ class PersistentLabelledImage (AbsractLabelledImage):
         return os.path.basename(self.__image_path)
 
     @property
+    def meta(self):
+        return self.__meta
+
+    @meta.setter
+    def meta(self, val):
+        self.__meta = val
+
+    @property
     def image_name(self):
         return os.path.splitext(self.image_filename)[0]
 
@@ -721,7 +732,7 @@ class PersistentLabelledImage (AbsractLabelledImage):
 
     @labels.setter
     def labels(self, l):
-        self.__set_label_data(l, self.complete)
+        self.__set_label_data(l, self.__complete)
 
 
     @property
@@ -748,7 +759,7 @@ class PersistentLabelledImage (AbsractLabelledImage):
                     except ValueError:
                         pass
                     else:
-                        self.__labels, self.__complete = self._unwrap_labels(self.image_path, wrapped)
+                        self.__labels, self.__complete, self.__meta = self._unwrap_labels(self.image_path, wrapped)
         return self.__labels, self.__complete
 
     def __set_label_data(self, labels, complete):
@@ -760,23 +771,23 @@ class PersistentLabelledImage (AbsractLabelledImage):
                 if os.path.exists(self.__labels_path):
                     os.remove(self.__labels_path)
             else:
-                wrapped = self.__wrap_labels(self.image_path, labels, complete)
+                wrapped = self.__wrap_labels()
                 with open(self.__labels_path, 'w') as f:
                     json.dump(wrapped, f, indent=3)
 
 
 
-    @staticmethod
-    def __wrap_labels(image_path, labels, complete):
-        image_filename = os.path.split(image_path)[1]
+    def __wrap_labels(self):
+        image_filename = os.path.split(self.image_path)[1]
         return {'image_filename': image_filename,
-                'labels': labels.labels_json,
-                'complete': complete}
+                'labels': self.__labels.labels_json,
+                'complete': self.__complete,
+                'meta': self.__meta}
 
     @staticmethod
     def _unwrap_labels(image_path, wrapped_labels):
         if isinstance(wrapped_labels, dict):
-            return ImageLabels(wrapped_labels['labels']), wrapped_labels.get('complete', False)
+            return ImageLabels(wrapped_labels['labels']), wrapped_labels.get('complete', False), wrapped_labels.get('meta', None)
         elif isinstance(wrapped_labels, list):
             return ImageLabels(wrapped_labels), False
         else:

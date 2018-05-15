@@ -32,6 +32,8 @@ import yaml
 from flask import Flask, render_template, request, make_response, send_from_directory
 
 from image_labelling_tool import labelling_tool
+import glob
+from skimage.segmentation import slic
 
 def refresh():
         # `LabelClass` parameters are: symbolic name, human readable name for UI, and RGB colour as list
@@ -47,8 +49,6 @@ def refresh():
 
         img_dir = args.image_dir
         if args.slic:
-            import glob
-            from skimage.segmentation import slic
 
             for path in glob.glob(os.path.join(img_dir, '*{}'.format(file_ext))):
                 name = os.path.splitext(path)[0]
@@ -144,10 +144,11 @@ if __name__ == '__main__':
         label_header = {
             'labels': labels,
             'image_id': image_id,
-            'complete': complete
+            'complete': complete,
+            'meta': image.meta
         }
-
-        r = make_response(json.dumps(label_header))
+        label_json = json.dumps(label_header)
+        r = make_response(label_json)
         r.mimetype = 'application/json'
         return r
 
@@ -178,6 +179,19 @@ if __name__ == '__main__':
     @app.route(args.prefix + '/ext_static/<path:filename>')
     def base_static(filename):
         return send_from_directory(app.root_path + '/ext_static/', filename)
+    
+    @app.route(args.prefix + '/set_slic')
+    def set_slic():
+        image_id = request.args.get('image_id')
+        segments_count = int(request.args.get('segments_count'))
+        compactness = float(request.args.get('compactness'))
+
+        image = images_table[image_id]
+        slic_labels = slic(image.pixels, n_segments=segments_count, compactness=compactness)
+        labels = labelling_tool.ImageLabels.from_label_image(slic_labels)
+        image.meta = {"segments_count": segments_count, "compactness": compactness}
+        image.labels_json = labels.labels_json
+        return make_response('')
 
 
     # app.run(debug=True)
