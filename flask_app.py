@@ -191,7 +191,13 @@ if __name__ == '__main__':
         labels = labelling_tool.ImageLabels.from_label_image(slic_labels)
         image.meta = {"segments_count": segments_count, "compactness": compactness}
         image.labels_json = labels.labels_json
-        return make_response('')
+        response_data = {
+            'image_id': image_id
+        }
+        response_json = json.dumps(response_data)
+        response = make_response(response_json)
+        response.mimetype = 'application/json'
+        return response
 
 
     # app.run(debug=True)

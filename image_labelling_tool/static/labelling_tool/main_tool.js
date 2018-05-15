@@ -209,7 +209,6 @@ var labelling_tool;
                     segments_count = self._segments_count.value;
                     compactness = self._compactness.value;
                     self._set_slic_callback(image_id, segments_count, compactness);
-                    self.loadImage(self._images[image_id]);
                 }
                 this._image_index_input = $('<input type="text" style="width: 30px; vertical-align: middle;" name="image_index"/>').appendTo(toolbar);
                 this._image_index_input.on('change', function () {
@@ -692,6 +691,9 @@ var labelling_tool;
             img.addEventListener('error', onerror, false);
             img.src = url;
             return img;
+        };
+        LabellingTool.prototype.loadImageById = function (id) {
+            this.loadImage(this._images[id]);
         };
         LabellingTool.prototype.loadImage = function (image) {
             var self = this;
