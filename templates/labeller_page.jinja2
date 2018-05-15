@@ -137,7 +137,8 @@
                 type: 'GET',
                 url: '{{ prefix }}/set_slic?image_id=' + image_id + '&segments_count=' + segments_count + '&compactness=' + compactness,
                 success: function(res) {
-                    tool.loadImageById(res.image_id);
+                    //tool.loadImageById(res.image_id);
+                    get_labels(res.image_id);
                 },
                 dataType: 'json'
             });
