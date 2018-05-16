@@ -115,54 +115,28 @@
 
 
     <script>
-        // get image descriptor callback function
-        var get_labels = function(image_id) {
-            $.ajax({
-                type: 'GET',
-                url: '{{ prefix }}/labelling/get_labels/' + image_id,
-                success: function(label_header) {
-                    tool.loadLabels(label_header, null);
-                },
-                dataType: 'json'
-            });
+        async function get_labels(image_id) {
+            let url = `{{ prefix }}/labelling/get_labels/${image_id}`;
+            let response = await fetch(url);
+            let obj = await response.json();
+            tool.loadLabels(obj, null);
         };
-        var refresh = function() {
-            $.ajax({
-                type: 'GET',
-                url: '{{ prefix }}/refresh'
-            });
+        async function refresh() {
+            const response = await fetch('{{ prefix }}/refresh');
         };
-        var set_slic = function(image_id, segments_count) {
-            $.ajax({
-                type: 'GET',
-                url: '{{ prefix }}/set_slic?image_id=' + image_id + '&segments_count=' + segments_count + '&compactness=' + compactness,
-                success: function(res) {
-                    //tool.loadImageById(res.image_id);
-                    get_labels(res.image_id);
-                },
-                dataType: 'json'
-            });
+        async function set_slic(image_id, segments_count, compactness) {
+            let url = `{{ prefix }}/set_slic?image_id=${image_id}&segments_count=${segments_count}&compactness=${compactness}`;
+            let response = await fetch(url);
+            get_labels(image_id);
         };
         
 
         // set labels callback function
-        var set_labels = function(label_header) {
-            var labels_json_str = JSON.stringify(label_header);
-
-            // Create the POST data
-            var post_data = {
-                labels: labels_json_str
-            };
-
-            $.ajax({
-                type: 'POST',
-                url: '{{ prefix }}/labelling/set_labels',
-                data: post_data,
-                success: function(msg) {
-                    tool.notifyLabelUpdateResponse(msg);
-                },
-                dataType: 'json'
-            });
+        async function set_labels(label_header) {
+            let post_data = JSON.stringify(label_header);
+            let url = '{{ prefix }}/labelling/set_labels';
+            let response = await fetch(url, {method: 'POST', body: post_data});
+            tool.notifyLabelUpdateResponse(response);
         };
 
         // Create the labelling tool

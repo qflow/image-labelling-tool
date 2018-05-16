@@ -799,9 +799,9 @@ var labelling_tool;
             }
         };
         LabellingTool.prototype.notifyLabelUpdateResponse = function (msg) {
-            if (msg.error === undefined) {
+            if (msg.ok) {
             }
-            else if (msg.error === 'locked') {
+            else if (msg.statusText === 'locked') {
                 // Lock controls
                 this.lockLabels();
             }

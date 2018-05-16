@@ -685,8 +685,7 @@ class PersistentLabelledImage (AbsractLabelledImage):
         self.__labels = None
         self.__complete = None
         self.__readonly = readonly
-        self.__meta = 4
-        self.__test = 5
+        self.__meta = None
 
 
 

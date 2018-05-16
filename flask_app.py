@@ -48,6 +48,7 @@ def refresh():
                         for color, name in zip(colors, label_names)]
 
         img_dir = args.image_dir
+        '''
         if args.slic:
 
             for path in glob.glob(os.path.join(img_dir, '*{}'.format(file_ext))):
@@ -69,7 +70,7 @@ def refresh():
 
                 with open(out_name, 'w') as f:
                     json.dump(labels.labels_json, f)
-
+'''
         readonly = args.readonly
         # Load in .JPG images from the 'images' directory.
         labelled_images = labelling_tool.PersistentLabelledImage.for_directory(
@@ -106,6 +107,7 @@ if __name__ == '__main__':
     file_ext = '.{}'.format(args.file_ext)
     refresh()
     app = Flask(__name__, static_folder='image_labelling_tool/static', static_url_path=args.prefix+'/static')
+    app.config['MAX_CONTENT_LENGTH'] = 64e6
     config = {
         'tools': {
             'imageSelector': True,
@@ -155,7 +157,7 @@ if __name__ == '__main__':
 
     @app.route(args.prefix + '/labelling/set_labels', methods=['POST'])
     def set_labels():
-        label_header = json.loads(request.form['labels'])
+        label_header = json.loads(request.data)
         image_id = label_header['image_id']
         complete = label_header['complete']
         labels = label_header['labels']

@@ -23,11 +23,17 @@ class Slider extends HTMLElement {
         var step = this.getAttribute('step');
         if(this.hasAttribute('label')) {
             var label = this.getAttribute('label');
-            $('<label for="slider">' + label + '</label>').appendTo(shadowRoot);
+            $(`<label for="slider">${label}</label>`).appendTo(shadowRoot);
         }
-        
-        this._slider = $('<input name="slider" type="range" step="'+step+'" min="'+min+'" max="'+max+'"/>').appendTo(shadowRoot)[0];
-        this._number = $('<input name="number" type="number" step="'+step+'" min="'+min+'" max="'+max+'"/>').appendTo(shadowRoot)[0];
+        /*this._slider = document.createElement('input');
+        this._slider.type = 'range';
+        this._slider.step = step;
+        this._slider.min = min;
+        this._slider.max = max;
+        this._slider.name = 'slider';
+        shadowRoot.append(this._slider);*/
+        this._slider = $(`<input name="slider" type="range" step="${step}" min="${min}" max="${max}"/>`).appendTo(shadowRoot)[0];
+        this._number = $(`<input name="number" type="number" step="${step}" min="${min}" max="${max}"/>`).appendTo(shadowRoot)[0];
         var slider = this;
         this._slider.onchange = function () {
             var val = slider._slider.value;
