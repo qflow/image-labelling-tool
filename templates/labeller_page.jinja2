@@ -5,6 +5,7 @@
         <script src="{{ prefix }}/ext_static/jquery/jquery-2.1.1.min.js"></script>
 
         <link rel="stylesheet" href="{{  prefix }}/ext_static/jquery/jquery-ui.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <script src="{{ prefix }}/ext_static/jquery/jquery-ui.min.js"></script>
 
         <script src="{{ prefix }}/static/d3.min.js"></script>
@@ -141,7 +142,7 @@
 
         // Create the labelling tool
         // Give it: label classes, dimensions, image descriptors, initial image ID and the callbacks above
-        var tool = new labelling_tool.LabellingTool($("#labelling_tool")[0],
+        var tool = new labelling_tool.LabellingTool("{{ prefix }}", $("#labelling_tool")[0],
                 {{ label_classes }},
                 1280,
                 720,

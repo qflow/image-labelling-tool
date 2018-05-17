@@ -60,7 +60,7 @@ var labelling_tool;
    Labelling tool view; links to the server side data structures
     */
     var LabellingTool = (function () {
-        function LabellingTool(element, label_classes, tool_width, tool_height, images, initial_image_index, requestLabelsCallback, 
+        function LabellingTool(prefix, element, label_classes, tool_width, tool_height, images, initial_image_index, requestLabelsCallback, 
             refreshCallback, set_slic_callback, sendLabelHeaderFn, getNextUnlockedImageIDCallback, config) {
             var _this = this;
             var self = this;
@@ -71,6 +71,7 @@ var labelling_tool;
             }
             config = config || {};
             this._config = config;
+            this._prefix = prefix;
             config.tools = config.tools || {};
             labelling_tool.ensure_config_option_exists(config.tools, 'imageSelector', true);
             labelling_tool.ensure_config_option_exists(config.tools, 'labelClassSelector', true);
@@ -221,37 +222,25 @@ var labelling_tool;
                 });
                 $('<span>' + '/' + this._num_images + '</span>').appendTo(toolbar);
                 $('<br/>').appendTo(toolbar);
-                var prev_image_button = $('<button>Prev image</button>').appendTo(toolbar);
-                prev_image_button.button({
-                    text: false,
-                    icons: { primary: "ui-icon-seek-prev" }
-                }).click(function (event) {
+                var prev_image_button = $('<button title="Prev image"><i class="fa fa-angle-double-left"></i></button>').appendTo(toolbar);
+                prev_image_button.button().click(function (event) {
                     _increment_image_index(-1);
                     event.preventDefault();
                 });
-                var next_image_button = $('<button>Next image</button>').appendTo(toolbar);
-                next_image_button.button({
-                    text: false,
-                    icons: { primary: "ui-icon-seek-next" }
-                }).click(function (event) {
+                var next_image_button = $('<button title="Next image"><i class="fa fa-angle-double-right"></i></button>').appendTo(toolbar);
+                next_image_button.button().click(function (event) {
                     _increment_image_index(1);
                     event.preventDefault();
                 });
-                var refresh_button = $('<button>Refresh</button>').appendTo(toolbar);
-                refresh_button.button({
-                    text: false,
-                    icons: { primary: "ui-icon-refresh" }
-                }).click(function (event) {
+                var refresh_button = $('<button title="Refresh"><i class="fa fa-refresh"></i></button>').appendTo(toolbar);
+                refresh_button.button().click(function (event) {
                     _refresh();
                     location.reload(true);
                     event.preventDefault();
                 });
                 if (this._getNextUnlockedImageIDCallback !== null && this._getNextUnlockedImageIDCallback !== undefined) {
-                    var next_unlocked_image_button = $('<button>Next unlocked image</button>').appendTo(toolbar);
-                    next_unlocked_image_button.button({
-                        text: false,
-                        icons: { primary: "ui-icon-unlocked" }
-                    }).click(function (event) {
+                    var next_unlocked_image_button = $('<button title="Next unlocked image"><i class="fa fa-angle-double-right"></i></button>').appendTo(toolbar);
+                    next_unlocked_image_button.button().click(function (event) {
                         _next_unlocked_image();
                         event.preventDefault();
                     });
@@ -262,17 +251,17 @@ var labelling_tool;
                 'Please choose another image (click the unlock button above to find the next unlocked image).</p></div>');
             this._lockNotification.appendTo(toolbar);
             $('<br/>').appendTo(toolbar);
-            this._segments_count = $('<ui-slider name="segments_count" label="Segments count" min="1" max="1500" step=1/>').appendTo(toolbar)[0];
+            this._segments_count = $('<ui-slider name="segments_count" label="Segments count" min="1" max="2000" step=1/>').appendTo(toolbar)[0];
             this._segments_count.onchange = function () {
                 _set_slic();
             };
             $('<br/>').appendTo(toolbar);
-            this._compactness = $('<ui-slider name="compactness" label="Compactness" min="0.1" max="10" step=0.1/>').appendTo(toolbar)[0];
+            this._compactness = $('<ui-slider name="compactness" label="Compactness" min="0.1" max="20" step=0.1/>').appendTo(toolbar)[0];
             this._compactness.onchange = function () {
                 _set_slic();
             };
             $('<br/>').appendTo(toolbar);
-            this._complete_checkbox = $('<input type="checkbox">Finished</input>').appendTo(toolbar);
+            this._complete_checkbox = $('<input type="checkbox" hidden></input>').appendTo(toolbar);
             this._complete_checkbox.change(function (event, ui) {
                 self.root_view.set_complete(event.target.checked);
                 self.queue_push_label_data();
@@ -325,14 +314,14 @@ var labelling_tool;
             // Select, brush select, draw poly, composite, group, delete
             //
             $('<p style="background: #b0b0b0;">Tools</p>').appendTo(toolbar);
-            var select_button = $('<button>Select</button>').appendTo(toolbar);
+            var select_button = $('<button title="Select"><i class="fa fa-hand-o-left"></i></button>').appendTo(toolbar);
             select_button.button().click(function (event) {
                 self.set_current_tool(new labelling_tool.SelectEntityTool(self.root_view));
                 event.preventDefault();
             });
             this._lockableControls = this._lockableControls.add(select_button);
             if (config.tools.brushSelect) {
-                var brush_select_button = $('<button>Brush select</button>').appendTo(toolbar);
+                var brush_select_button = $('<button title="Brush Select"><i class="fa fa-paint-brush"></i></button>').appendTo(toolbar);
                 brush_select_button.button().click(function (event) {
                     self.set_current_tool(new labelling_tool.BrushSelectEntityTool(self.root_view));
                     event.preventDefault();
@@ -340,7 +329,7 @@ var labelling_tool;
                 this._lockableControls = this._lockableControls.add(brush_select_button);
             }
             if (config.tools.drawPointLabel) {
-                var draw_point_button = $('<button>Add point</button>').appendTo(toolbar);
+                var draw_point_button = $('<button title="Add point"><i class="fa fa-circle"></i></button>').appendTo(toolbar);
                 draw_point_button.button().click(function (event) {
                     var current = self.root_view.get_selected_entity();
                     if (current instanceof labelling_tool.PointLabelEntity) {
@@ -354,7 +343,7 @@ var labelling_tool;
                 this._lockableControls = this._lockableControls.add(draw_point_button);
             }
             if (config.tools.drawBoxLabel) {
-                var draw_box_button = $('<button>Draw box</button>').appendTo(toolbar);
+                var draw_box_button = $('<button title="Draw box"><i class="fa fa-square-o"></i></button>').appendTo(toolbar);
                 draw_box_button.button().click(function (event) {
                     var current = self.root_view.get_selected_entity();
                     if (current instanceof labelling_tool.BoxLabelEntity) {
@@ -368,7 +357,7 @@ var labelling_tool;
                 this._lockableControls = this._lockableControls.add(draw_box_button);
             }
             if (config.tools.drawPolyLabel) {
-                var draw_polygon_button = $('<button>Draw poly</button>').appendTo(toolbar);
+                var draw_polygon_button = $('<button title="Draw poly"><i class="fa fa-star-o"></i></button>').appendTo(toolbar);
                 draw_polygon_button.button().click(function (event) {
                     var current = self.root_view.get_selected_entity();
                     if (current instanceof labelling_tool.PolygonalLabelEntity) {
@@ -382,7 +371,7 @@ var labelling_tool;
                 this._lockableControls = this._lockableControls.add(draw_polygon_button);
             }
             if (config.tools.compositeLabel) {
-                var composite_button = $('<button>Composite</button>').appendTo(toolbar);
+                var composite_button = $('<button title="Composite"><i class="fa fa-sitemap"></i></button>').appendTo(toolbar);
                 composite_button.button().click(function (event) {
                     self.root_view.create_composite_label_from_selection();
                     event.preventDefault();
@@ -390,7 +379,7 @@ var labelling_tool;
                 this._lockableControls = this._lockableControls.add(composite_button);
             }
             if (config.tools.groupLabel) {
-                var group_button = $('<button>Group</button>').appendTo(toolbar);
+                var group_button = $('<button title="Group"><i class="fa fa-object-group"></i></button>').appendTo(toolbar);
                 group_button.button().click(function (event) {
                     var group_entity = self.root_view.create_group_label_from_selection();
                     if (group_entity !== null) {
@@ -401,11 +390,8 @@ var labelling_tool;
                 this._lockableControls = this._lockableControls.add(group_button);
             }
             if (config.tools.deleteLabel) {
-                var delete_label_button = $('<button>Delete</button>').appendTo(toolbar);
-                delete_label_button.button({
-                    text: false,
-                    icons: { primary: "ui-icon-trash" }
-                }).click(function (event) {
+                var delete_label_button = $('<button title="Delete"><i class="fa fa-trash-o"></i></button>').appendTo(toolbar);
+                delete_label_button.button().click(function (event) {
                     if (!self._confirm_delete_visible) {
                         var cancel_button = $('<button>Cancel</button>').appendTo(self._confirm_delete);
                         var confirm_button = $('<button>Confirm delete</button>').appendTo(self._confirm_delete);
